@@ -1,0 +1,53 @@
+#!/bin/bash
+# Hellish Tech
+# No commercial usage without authorization
+
+
+if [[ $EUID -ne 0 ]]; then
+  echo "This script must be run as root" 1>&2
+  exit 1
+fi
+
+while [[ $# -gt 1 ]]
+do
+key="$1"
+
+case $key in
+    -u|--username)
+    USERNAME="$2"
+    shift # past argument
+    ;;
+    -pt|--plextoken)
+    PLEXTOKEN="$2"
+    shift # past argument
+    ;;
+    *)
+            # unknown option
+    ;;
+esac
+shift # past argument or value
+done
+
+SYSTEMHOSTNAME=`cat /etc/seedbox-from-scratch/hostname.info`
+PLEXPORT=$(/etc/seedbox-from-scratch/sfsgetAvailablePort -sp 32401 -ep 32500)
+USERUID=$(id -u ${USERNAME})
+USERGID=$(id -g ${USERNAME})
+
+docker run --restart=always -d --name ${USERNAME}_plex -h ${SYSTEMHOSTNAME} -e PLEX_TOKEN=${PLEXTOKEN} -e PLEX_PASS=true -e PLEX_EXTERNALPORT=${PLEXPORT} --dns=$(grep nameserver /etc/resolv.conf|tail -1|cut -d ' ' -f 2) -v /home/${USERNAME}/media:/data -v /home/${USERNAME}/downloads/manual:/downloads -v /home/${USERNAME}/plex/config:/config -v /home/${USERNAME}/plex/transcode:/tmp -p ${PLEXPORT}:32400 timhaak/plex
+
+sleep 5
+
+CHECKIFRUNNING=$(/etc/seedbox-from-scratch/sfsRunningUserDockerInfo -u ${USERNAME} -d plex | tr -cd '[[:alnum:]]._-' )
+if [[ (${CHECKIFRUNNING} == "STOPPED") || (${CHECKIFRUNNING} == "RUNNING") ]]; then
+	echo "SERVICE: PLEX" > /home/${USERNAME}/private/plex.serviceinfo
+	echo "USERNAME: $USERNAME" >> /home/${USERNAME}/private/plex.serviceinfo
+	echo "ACCESSURL: https://$SYSTEMHOSTNAME:$PLEXPORT/web" >> /home/${USERNAME}/private/plex.serviceinfo
+	echo "ACCESSURL: http://$SYSTEMHOSTNAME:$PLEXPORT/web" >> /home/${USERNAME}/private/plex.serviceinfo
+	echo "PLEXPORT: $PLEXPORT" >> /home/${USERNAME}/private/plex.serviceinfo
+	chown www-data:www-data  /home/${USERNAME}/private/*.serviceinfo
+fi
+
+if [[ -n $1 ]]; then
+    echo "Last line of file specified as non-opt/last argument:"
+    tail -1 $1
+fi
