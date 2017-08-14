@@ -125,7 +125,7 @@ getString NO  "ssl key file (make sure it is in the /opt/seedbox-from-scratch/ f
 getString NO  "SSH port: " NEWSSHPORT1 22101
 getString NO  "vsftp port (usually 21): " NEWFTPPORT1 21201
 getString NO  "OpenVPN port: " OPENVPNPORT1 31195
-#getString NO  "Do you want to have some of your users in a chroot jail? " CHROOTJAIL1 YES
+getString NO  "Do you want to have some of your users in a chroot jail? " CHROOTJAIL1 YES
 getString NO  "Install Webmin? " INSTALLWEBMIN1 YES
 getString NO  "Install Fail2ban? " INSTALLFAIL2BAN1 NO
 getString NO  "Install OpenVPN? " INSTALLOPENVPN1 NO
@@ -587,7 +587,7 @@ bash /etc/seedbox-from-scratch/createSeedboxUser $NEWUSER1 $PASSWORD1 YES YES YE
 
 # 38 Implement HNSeedbox begin the process to build the dockers (not needed)
 
-#bash /etc/seedbox-from-scratch/implementHNSeedbaseDockerImageSettings
+bash /etc/seedbox-from-scratch/implementHNSeedbaseDockerImageSettings
 
 #38.1 Pull down required docker images
 docker pull timhaak/plex
